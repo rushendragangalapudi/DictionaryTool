@@ -72,5 +72,44 @@ program
         if (err) { return console.log(err); }
     });
  });
-
+ 
+// complete random word details
+program
+ .command('play')
+ .action((word) => {
+    request(url+ 'words/randomWord?api_key=' + api_key, { json: true }, (err, res, body) => {
+        var wordData = {};
+        if (err) { return console.log(err); }
+        request(url+ 'word/' + res.body.word + '/relatedWords?api_key=' + api_key, { json: true }, (err, res1, body) => {
+            console.log(res1.body);
+            wordData[res1.body[0].relationshipType] = res1.body[0].words;
+            if(res1.body[1])
+                wordData[res1.body[1].relationshipType] = res1.body[1].words;
+        });
+        request(url+ 'word/' + res.body.word + '/definitions?api_key=' + api_key, { json: true }, (err, res2, body) => {
+            console.log(res2.body);
+            wordData.definitions = res2.body;
+        });
+        setTimeout(() => {
+            if(wordData.definitions[0])
+                console.log('definitions', wordData.definitions[0].text)
+            if(wordData.antonym)
+                console.log('antonym', wordData.antonym[0])
+            if(wordData.synonym)
+                console.log('synonym', wordData.synonym[0])
+            const readline = require('readline').createInterface({
+                input: process.stdin,
+                output: process.stdout
+            })
+            readline.question(`guess word?`, (userWord) => {
+                if(wordData.synonym.indexOf(userWord) > 0 || userWord === res.body.word) {
+                    console.log('Correct');
+                } else {
+                    console.log('wrong guess')
+                }
+                readline.close()
+            })
+        }, 1000)
+    });
+ });
  program.parse(process.argv)
