@@ -97,19 +97,51 @@ program
                 console.log('antonym', wordData.antonym[0])
             if(wordData.synonym)
                 console.log('synonym', wordData.synonym[0])
-            const readline = require('readline').createInterface({
-                input: process.stdin,
-                output: process.stdout
-            })
-            readline.question(`guess word?`, (userWord) => {
-                if(wordData.synonym.indexOf(userWord) > 0 || userWord === res.body.word) {
-                    console.log('Correct');
-                } else {
-                    console.log('wrong guess')
-                }
-                readline.close()
-            })
+            test(wordData, res, 1);
         }, 1000)
     });
  });
  program.parse(process.argv)
+ //
+ var test = function(wordData, res, i) {
+    const readline = require('readline').createInterface({
+        input: process.stdin,
+        output: process.stdout
+    })
+     readline.question(`guess word?`, (userWord) => {
+        readline.close()
+        if(wordData.synonym.indexOf(userWord) > 0 || userWord === res.body.word) {
+            console.log('Correct');
+        } else {
+            console.log("1) Try again");
+            console.log("2) Hint");
+            console.log("3) Quit");
+            const readline1 = require('readline').createInterface({
+                input: process.stdin,
+                output: process.stdout
+            })
+            readline1.question(`your choice?`, (userWord1) => {
+                readline1.close()
+                if(userWord1 == "3") {
+                    console.log("3) Quit \n " + res.body.word) 
+                } else if (userWord1 == "2") {
+                    var shuffled = res.body.word.split('').sort(function(){return 0.5-Math.random()}).join('');
+                    var text = "Shuffled word: " + shuffled;
+                    if(wordData.definitions && wordData.definitions[i]) {
+                        text += "\n definitions: " + wordData.definitions[i].text;
+                    }
+                    if(wordData.antonym && wordData.antonym[i]) {
+                        text += "\n antonym: " + wordData.antonym[i];
+                    }
+                    if(wordData.synonym && wordData.synonym[i]) {
+                        text += "\n synonym: " + wordData.synonym[i];
+                    }
+                    console.log("2) Hint \n Hint could be: \n" + text);
+                } else {
+                    console.log("1) Try again \n Lets try again.");
+                    test(wordData, res, i++);
+                }
+            })
+        }
+    })
+ }
